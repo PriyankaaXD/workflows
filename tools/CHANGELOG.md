@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Changed
 
 - Enforced non-empty qualifiers on `Array[*]` types that cannot be empty [#328](https://github.com/stjudecloud/workflows/pull/328)
+### Added
+- Added WDL implementation for Salmon (`build_salmon_index` and `quant` tasks) [#326](https://github.com/stjudecloud/workflows/pull/326)
 
 ## 2026 February
 
