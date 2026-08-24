@@ -12,7 +12,7 @@ task build_salmon_index {
         transcripts_fasta: "FASTA format file containing the reference transcriptome to index"
         decoys_fasta: {
             description: "Optional FASTA file containing decoy genome sequences to improve mapping specificity.",
-            help: "Per Salmon's recommended decoy-aware indexing workflow.",
+            help: "Per Salmon's decoy-aware indexing workflow.",
             group: "Common",
         }
         index_name: {
@@ -60,14 +60,14 @@ task build_salmon_index {
             n_cores=$(nproc)
         fi
 
-        gentrome="~{transcripts_fasta}"
+        fasta="~{transcripts_fasta}"
 
         ~{if defined(decoys_fasta) then "grep \"^>\" " + select_first([decoys_fasta]) + " | cut -d \" \" -f1 | sed \"s/^>//\" > decoys.txt" else ""}
-        ~{if defined(decoys_fasta) then "cat " + transcripts_fasta + " " + select_first([decoys_fasta]) + " > gentrome.fasta" else ""}
-        ~{if defined(decoys_fasta) then "gentrome=gentrome.fasta" else ""}
+        ~{if defined(decoys_fasta) then "cat " + transcripts_fasta + " " + select_first([decoys_fasta]) + " > combined.fasta" else ""}
+        ~{if defined(decoys_fasta) then "fasta=combined.fasta" else ""}
 
         salmon index \
-            -t "$gentrome" \
+            -t "$fasta" \
             -i "~{index_name}" \
             ~{if defined(decoys_fasta) then "-d decoys.txt" else ""} \
             -p "$n_cores"
