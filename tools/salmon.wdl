@@ -83,7 +83,7 @@ task build_salmon_index {
         cpu: ncpu
         memory: "~{ceil(transcripts_fasta_size * 4) + 4 + modify_memory_gb} GB"
         disks: "~{disk_size_gb} GB"
-        container: "quay.io/biocontainers/salmon:1.9.0--h7e5ed60_0"
+        container: "quay.io/biocontainers/salmon:2.6.0--hfa8f182_0"
         maxRetries: 1
     }
 }
@@ -279,7 +279,7 @@ task quant {
         cpu: ncpu
         memory: "~{memory_gb} GB"
         disks: "~{disk_size_gb} GB"
-        container: "quay.io/biocontainers/salmon:1.9.0--h7e5ed60_0"
+        container: "quay.io/biocontainers/salmon:2.6.0--hfa8f182_0"
         maxRetries: 1
     }
 }
