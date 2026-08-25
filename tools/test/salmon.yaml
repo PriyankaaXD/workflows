@@ -2,7 +2,17 @@ build_salmon_index:
   - name: builds_index_successfully
     inputs:
       transcripts_fasta:
-        - salmon/transcripts.fasta
+        - reference/GRCh38.chrY_chrM.fa
+    assertions:
+      outputs:
+        salmon_index_tar_gz:
+          - Name: salmon_index.tar.gz
+  - name: builds_index_with_decoys
+    inputs:
+      transcripts_fasta:
+        - reference/GRCh38.chr1_chr19.fa
+      decoys_fasta:
+        - reference/GRCh38.chrY_chrM.fa
     assertions:
       outputs:
         salmon_index_tar_gz:
