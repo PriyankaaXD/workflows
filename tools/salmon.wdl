@@ -96,7 +96,8 @@ task quant {
     meta {
         description: "Runs Salmon quant in mapping-based mode to quantify transcript-level expression from RNA-Seq reads, using a pre-built Salmon index"
         outputs: {
-            quant_results_tar_gz: "A gzipped TAR file containing the Salmon quantification output directory, including `quant.sf`."
+            quant_results_tar_gz: "A gzipped TAR file containing the Salmon quantification output directory, including `quant.sf`.",
+            quant_sf: "The raw `quant.sf` transcript quantification file, provided directly in addition to the tarballed output for convenience."
         }
     }
 
@@ -272,11 +273,14 @@ task quant {
             ~{if write_unmapped_names then "--writeUnmappedNames" else ""} \
             -o "~{prefix}"
 
+        cp "~{prefix}/quant.sf" "~{prefix}.quant.sf"
+
         tar -czf "~{prefix}.tar.gz" "~{prefix}"
     >>>
 
     output {
         File quant_results_tar_gz = prefix + ".tar.gz"
+        File quant_sf = prefix + ".quant.sf"
     }
 
     runtime {
