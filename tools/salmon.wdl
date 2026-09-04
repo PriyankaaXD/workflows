@@ -60,10 +60,12 @@ task build_salmon_index {
             n_cores=$(nproc)
         fi
 
-        fasta="~{transcripts_fasta}"
+        (gzip -dcf "~{transcripts_fasta}" > transcripts.fasta 2>/dev/null) || cp "~{transcripts_fasta}" transcripts.fasta
+        fasta="transcripts.fasta"
 
-        ~{if defined(decoys_fasta) then "grep \"^>\" " + select_first([decoys_fasta]) + " | cut -d \" \" -f1 | sed \"s/^>//\" > decoys.txt" else ""}
-        ~{if defined(decoys_fasta) then "cat " + transcripts_fasta + " " + select_first([decoys_fasta]) + " > combined.fasta" else ""}
+        ~{if defined(decoys_fasta) then "(gzip -dcf " + select_first([decoys_fasta]) + " > decoys.fasta 2>/dev/null) || cp " + select_first([decoys_fasta]) + " decoys.fasta" else ""}
+        ~{if defined(decoys_fasta) then "grep \"^>\" decoys.fasta | cut -d \" \" -f1 | sed \"s/^>//\" > decoys.txt" else ""}
+        ~{if defined(decoys_fasta) then "cat transcripts.fasta decoys.fasta > combined.fasta" else ""}
         ~{if defined(decoys_fasta) then "fasta=combined.fasta" else ""}
 
         salmon index \
@@ -73,6 +75,8 @@ task build_salmon_index {
             -p "$n_cores"
 
         tar -czf "~{salmon_index_filename}" "~{index_name}"
+
+        rm -f transcripts.fasta decoys.fasta combined.fasta
     >>>
 
     output {
