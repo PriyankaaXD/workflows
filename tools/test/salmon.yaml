@@ -1,11 +1,11 @@
-build_salmon_index:
+index:
   - name: builds_index_successfully
     inputs:
       transcripts_fasta:
         - reference/gencode.v50.BCR_ABL1.transcripts.fa.gz
     assertions:
       outputs:
-        salmon_index_tar_gz:
+        index_tar_gz:
           - Name: salmon_index.tar.gz
   - name: builds_index_with_decoys
     inputs:
@@ -15,13 +15,13 @@ build_salmon_index:
         - reference/GRCh38.chrY_chrM.fa
     assertions:
       outputs:
-        salmon_index_tar_gz:
+        index_tar_gz:
           - Name: salmon_index.tar.gz
 
 quant:
   - name: quantifies_paired_end_reads
     inputs:
-      salmon_index_tar_gz:
+      index_tar_gz:
         - salmon/salmon_index.tar.gz
       read_one_fastqs_gz:
         - - fastqs/test_R1.fq.gz
@@ -30,14 +30,14 @@ quant:
     assertions:
       outputs:
         quant_results_tar_gz:
-          - Name: test_R1.fq.gz.tar.gz
+          - Name: test.tar.gz
   - name: quantifies_single_end_reads
     inputs:
-      salmon_index_tar_gz:
+      index_tar_gz:
         - salmon/salmon_index.tar.gz
       read_one_fastqs_gz:
         - - fastqs/test_R1.fq.gz
     assertions:
       outputs:
         quant_results_tar_gz:
-          - Name: test_R1.fq.gz.tar.gz
+          - Name: test.tar.gz

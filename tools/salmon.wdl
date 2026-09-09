@@ -1,10 +1,10 @@
 version 1.1
 
-task build_salmon_index {
+task index {
     meta {
         description: "Builds a Salmon index from a transcriptome FASTA file, for use in quantification"
         outputs: {
-            salmon_index_tar_gz: "A gzipped TAR file containing the Salmon index files."
+            index_tar_gz: "A gzipped TAR file containing the Salmon index files."
         }
     }
 
@@ -60,12 +60,16 @@ task build_salmon_index {
             n_cores=$(nproc)
         fi
 
-        (gzip -dcf "~{transcripts_fasta}" > transcripts.fasta 2>/dev/null) || cp "~{transcripts_fasta}" transcripts.fasta
-        fasta="transcripts.fasta"
+        # shellcheck disable=SC2034
+        decoys_name=""
+        transcripts_name=~{basename(transcripts_fasta, ".gz")}
+        gunzip -c "~{transcripts_fasta}" > "$transcripts_name" || ln -sf "~{transcripts_fasta}" "$transcripts_name"
+        fasta="$transcripts_name"
 
-        ~{if defined(decoys_fasta) then "(gzip -dcf " + select_first([decoys_fasta]) + " > decoys.fasta 2>/dev/null) || cp " + select_first([decoys_fasta]) + " decoys.fasta" else ""}
-        ~{if defined(decoys_fasta) then "grep \"^>\" decoys.fasta | cut -d \" \" -f1 | sed \"s/^>//\" > decoys.txt" else ""}
-        ~{if defined(decoys_fasta) then "cat transcripts.fasta decoys.fasta > combined.fasta" else ""}
+        ~{if defined(decoys_fasta) then "decoys_name=" + basename(select_first([decoys_fasta]), ".gz") else ""}
+        ~{"gunzip -c \"" + decoys_fasta + "\" > \"$decoys_name\" || ln -sf \"" + decoys_fasta + "\" \"$decoys_name\""}
+        ~{if defined(decoys_fasta) then "grep \"^>\" \"$decoys_name\" | cut -d \" \" -f1 | sed \"s/^>//\" > decoys.txt" else ""}
+        ~{if defined(decoys_fasta) then "cat \"$transcripts_name\" \"$decoys_name\" > combined.fasta" else ""}
         ~{if defined(decoys_fasta) then "fasta=combined.fasta" else ""}
 
         salmon index \
@@ -80,7 +84,7 @@ task build_salmon_index {
     >>>
 
     output {
-        File salmon_index_tar_gz = salmon_index_filename
+        File index_tar_gz = salmon_index_filename
     }
 
     runtime {
@@ -97,12 +101,12 @@ task quant {
         description: "Runs Salmon quant in mapping-based mode to quantify transcript-level expression from RNA-Seq reads, using a pre-built Salmon index"
         outputs: {
             quant_results_tar_gz: "A gzipped TAR file containing the Salmon quantification output directory, including `quant.sf`.",
-            quant_sf: "The raw `quant.sf` transcript quantification file, provided directly in addition to the tarballed output for convenience."
+            quant_sf: "The raw `quant.sf` file, renamed to `<prefix>.quant.sf`, provided alongside the tarballed output."
         }
     }
 
     parameter_meta {
-        salmon_index_tar_gz: "A gzipped TAR file containing the Salmon index files. Suitable as the output of the `build_salmon_index` task."
+        index_tar_gz: "A gzipped TAR file containing the Salmon index files. Suitable as the output of the `index` task."
         read_one_fastqs_gz: "An array of gzipped FASTQ files containing read one information"
         read_two_fastqs_gz: {
             description: "An array of gzipped FASTQ files containing read two information. Omit for single-end reads.",
@@ -110,7 +114,7 @@ task quant {
         }
         lib_type: {
             description: "Salmon library type describing the relative orientation and strandedness of paired reads.",
-            help: "Use `A` to let Salmon auto-detect the library type â€” recommended for most users.",
+            help: "Use `A` to let Salmon auto-detect the library type - recommended for most users.",
             group: "Common",
         }
         prefix: {
@@ -204,11 +208,11 @@ task quant {
     }
 
     input {
-        File salmon_index_tar_gz
+        File index_tar_gz
         Array[File]+ read_one_fastqs_gz
         Array[File]? read_two_fastqs_gz
         String lib_type = "A"
-        String prefix = basename(read_one_fastqs_gz[0], ".fastq.gz")
+        String prefix = sub(basename(read_one_fastqs_gz[0]), "(([_.][rR](?:ead)?[12])((?:[_.-][^_.-]*?)*?))?\\.(fastq|fq)(\\.gz)?$", "")
         Boolean validate_mappings = true
         Int num_bootstraps = 0
         Float incompat_prior = 0.0
@@ -234,7 +238,7 @@ task quant {
 
     Float read_one_size = size(read_one_fastqs_gz, "GB")
     Float read_two_size = size(read_twos, "GB")
-    Float index_size = size(salmon_index_tar_gz, "GB")
+    Float index_size = size(index_tar_gz, "GB")
     Int disk_size_gb = ceil((read_one_size + read_two_size + index_size) * 3) + 10 + modify_disk_size_gb
     Int memory_gb = ceil(index_size * 4) + 8 + modify_memory_gb
 
@@ -247,9 +251,8 @@ task quant {
         fi
 
         mkdir salmon_index
-        tar -xzf "~{salmon_index_tar_gz}" -C salmon_index --strip-components 1
+        tar -xzf "~{index_tar_gz}" -C salmon_index --strip-components 1
 
-        # shellcheck disable=SC2086
         # shellcheck disable=SC2086
         salmon quant \
             -i salmon_index \
