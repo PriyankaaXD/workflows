@@ -59,17 +59,17 @@ task index {
             n_cores=$(nproc)
         fi
 
-        # shellcheck disable=SC2034
-        decoys_name=""
         transcripts_name=~{basename(transcripts_fasta, ".gz")}
         gunzip -c "~{transcripts_fasta}" > "$transcripts_name" || ln -sf "~{transcripts_fasta}" "$transcripts_name"
         fasta="$transcripts_name"
 
-        ~{if defined(decoys_fasta) then "decoys_name=" + basename(select_first([decoys_fasta]), ".gz") else ""}
-        ~{"gunzip -c \"" + decoys_fasta + "\" > \"$decoys_name\" || ln -sf \"" + decoys_fasta + "\" \"$decoys_name\""}
-        ~{if defined(decoys_fasta) then "grep \"^>\" \"$decoys_name\" | cut -d \" \" -f1 | sed \"s/^>//\" > decoys.txt" else ""}
-        ~{if defined(decoys_fasta) then "cat \"$transcripts_name\" \"$decoys_name\" > combined.fasta" else ""}
-        ~{if defined(decoys_fasta) then "fasta=combined.fasta" else ""}
+        decoys_name="~{if defined(decoys_fasta) then basename(select_first([decoys_fasta]), ".gz") else ""}"
+        if [ -n "$decoys_name" ]; then
+            gunzip -c "~{decoys_fasta}" > "$decoys_name" || ln -sf "~{decoys_fasta}" "$decoys_name"
+            grep "^>" "$decoys_name" | cut -d " " -f1 | sed "s/^>//" > decoys.txt
+            cat "$transcripts_name" "$decoys_name" > combined.fasta
+            fasta=combined.fasta
+        fi
 
         salmon index \
             -t "$fasta" \
