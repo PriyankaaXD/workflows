@@ -4,13 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## 2026 September
+
+### Added
+
+- Added WDL implementation for Salmon (`index` and `quant` tasks) [#326](https://github.com/stjudecloud/workflows/pull/326)
+
 ## 2026 August
 
 ### Changed
 
 - Enforced non-empty qualifiers on `Array[*]` types that cannot be empty [#328](https://github.com/stjudecloud/workflows/pull/328)
-### Added
-- Added WDL implementation for Salmon (`build_salmon_index` and `quant` tasks) [#326](https://github.com/stjudecloud/workflows/pull/326)
 
 ## 2026 February
 

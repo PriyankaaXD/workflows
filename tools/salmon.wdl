@@ -1,4 +1,4 @@
-version 1.1
+version 1.3
 
 task index {
     meta {
@@ -49,7 +49,8 @@ task index {
     String salmon_index_filename = index_name + ".tar.gz"
 
     Float transcripts_fasta_size = size(transcripts_fasta, "GB")
-    Int disk_size_gb = ceil(transcripts_fasta_size * 4) + 10 + modify_disk_size_gb
+    Float decoys_fasta_size = size(decoys_fasta, "GB")
+    Int disk_size_gb = ceil(transcripts_fasta_size * 4) + ceil(decoys_fasta_size * 4) + 10 + modify_disk_size_gb
 
     command <<<
         set -euo pipefail
@@ -59,7 +60,7 @@ task index {
             n_cores=$(nproc)
         fi
 
-        transcripts_name=~{basename(transcripts_fasta, ".gz")}
+        transcripts_name="~{basename(transcripts_fasta, ".gz")}"
         gunzip -c "~{transcripts_fasta}" > "$transcripts_name" || ln -sf "~{transcripts_fasta}" "$transcripts_name"
         fasta="$transcripts_name"
 
@@ -79,14 +80,14 @@ task index {
 
         tar -czf "~{salmon_index_filename}" "~{index_name}"
 
-        rm -f transcripts.fasta decoys.fasta combined.fasta
+        rm -f "$transcripts_name" "$decoys_name" combined.fasta
     >>>
 
     output {
         File index_tar_gz = salmon_index_filename
     }
 
-    runtime {
+    requirements {
         cpu: ncpu
         memory: "~{ceil(transcripts_fasta_size * 4) + 4 + modify_memory_gb} GB"
         disks: "~{disk_size_gb} GB"
@@ -280,7 +281,7 @@ task quant {
         File quant_sf = prefix + ".quant.sf"
     }
 
-    runtime {
+    requirements {
         cpu: ncpu
         memory: "~{memory_gb} GB"
         disks: "~{disk_size_gb} GB"
