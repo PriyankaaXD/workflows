@@ -115,6 +115,7 @@ task quant {
         lib_type: {
             description: "Salmon library type describing the relative orientation and strandedness of paired reads.",
             help: "Use `A` to let Salmon auto-detect the library type - recommended for most users.",
+            external_help: "https://combine-lab.github.io/salmon/guides/library-types/",
             group: "Common",
         }
         prefix: {
