@@ -9,10 +9,9 @@ task index {
     }
 
     parameter_meta {
-        transcripts_fasta: "FASTA format file containing the reference transcriptome to index"
+        transcripts_fasta: "FASTA format file containing the reference transcriptome to index. Can be gzipped."
         decoys_fasta: {
-            description: "Optional FASTA file containing decoy genome sequences to improve mapping specificity.",
-            help: "Per Salmon's decoy-aware indexing workflow.",
+            description: "Optional FASTA file containing decoy genome sequences to improve mapping specificity. Can be gzipped.",
             group: "Common",
         }
         index_name: {
@@ -98,7 +97,7 @@ task index {
 
 task quant {
     meta {
-        description: "Runs Salmon quant in mapping-based mode to quantify transcript-level expression from RNA-Seq reads, using a pre-built Salmon index"
+        description: "Runs `salmon quant` in mapping-based mode to quantify transcript-level expression from RNA-Seq reads, using a pre-built Salmon index."
         outputs: {
             quant_results_tar_gz: "A gzipped TAR file containing the Salmon quantification output directory, including `quant.sf`.",
             quant_sf: "The raw `quant.sf` file, renamed to `<prefix>.quant.sf`, provided alongside the tarballed output."
@@ -168,11 +167,11 @@ task quant {
             group: "Salmon Options",
         }
         recover_orphans: {
-            description: "This flag (which should only be used in conjunction with selective alignment), performs orphan \"rescue\" for reads.",
+            description: "This flag enables orphan \"rescue\" for reads.",
             group: "Salmon Options",
         }
         hard_filter: {
-            description: "This flag (which should only be used with selective alignment) turns off soft filtering and range-factorized equivalence classes.",
+            description: "This flag turns off soft filtering and range-factorized equivalence classes.",
             help: "Removes all but the equally highest scoring mappings from the equivalence class label for each fragment.",
             group: "Salmon Options",
         }

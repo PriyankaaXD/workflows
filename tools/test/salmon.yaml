@@ -1,5 +1,7 @@
 index:
   - name: builds_index_successfully
+    tags:
+      - reference
     inputs:
       transcripts_fasta:
         - reference/gencode.v50.BCR_ABL1.transcripts.fa.gz
@@ -8,6 +10,9 @@ index:
         index_tar_gz:
           - Name: salmon_index.tar.gz
   - name: builds_index_with_decoys
+    tags:
+      - reference
+      - slow
     inputs:
       transcripts_fasta:
         - reference/gencode.v50.BCR_ABL1.transcripts.fa.gz
